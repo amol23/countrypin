@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CountryPin</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📍</text></svg>">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #141e30);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .scene {
+            width: 380px; 
+            height: 520px; 
+            perspective: 1000px;
+        }
+
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 1.2s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .scene.is-flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        /* Hide the front face entirely after it flips to fix the transparent overlap bug */
+        .scene.is-flipped .card-front {
+            opacity: 0;
+            transition: opacity 0.1s 0.3s; 
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden; 
+            backface-visibility: hidden;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            padding: 20px 30px; 
+            justify-content: flex-start; 
+            padding-top: 40px;
+        }
+
+        .globe {
+            width: 70px;
+            height: 70px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: spinGlobe 3s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        /* New styling to perfectly space the globe when it's at the bottom */
+        .card-back .globe {
+            margin-top: 35px;
+            margin-bottom: 0;
+        }
+        
+        .globe-ring {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+        }
+        .globe-ring:nth-child(1) { transform: rotateY(0deg); }
+        .globe-ring:nth-child(2) { transform: rotateY(60deg); }
+        .globe-ring:nth-child(3) { transform: rotateY(120deg); }
+        .globe-ring:nth-child(4) { transform: rotateX(90deg); }
+
+        @keyframes spinGlobe {
+            0% { transform: rotate3d(1, 1, 0, 0deg); }
+            100% { transform: rotate3d(1, 1, 0, 360deg); }
+        }
+
+        #status-message {
+            font-size: 18px;
+            letter-spacing: 1px;
+            color: #ccc;
+            animation: pulseText 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulseText {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        #trivia-text {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #e0e0e0;
+            margin-bottom: 25px;
+        }
+
+        #trivia-text strong {
+            color: #fff;
+            font-size: 26px;
+            display: block;
+            margin: 10px 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        #flag {
+            max-width: 150px;
+            border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scene" id="card-scene">
+        <div class="card-inner">
+            
+            <div class="card-face card-front">
+                <div class="globe">
+                    <div class="globe-ring"></div>
+                    <div class="globe-ring"></div>
+                    <div class="globe-ring"></div>
+                    <div class="globe-ring"></div>
+                </div>
+                <div id="status-message">Locating you...</div>
+            </div>
+
+            <div class="card-face card-back">
+                
+                <div id="trivia-text"></div>
+                <img id="flag" src="" alt="Country Flag" style="display:none;">
+
+                <div class="globe">
+                    <div class="globe-ring"></div>
+                    <div class="globe-ring"></div>
+                    <div class="globe-ring"></div>
+                    <div class="globe-ring"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const countryIndicators = {
+            "ar": "the passionate tango and stunning Patagonia",
+            "au": "the Great Barrier Reef and the rugged Outback",
+            "br": "the vast Amazon Rainforest and vibrant Carnival",
+            "ca": "the breathtaking Rocky Mountains and vast wilderness",
+            "cn": "the ancient Great Wall and rich traditions",
+            "eg": "the majestic Pyramids of Giza and the Nile River",
+            "fr": "the romantic city of Paris and the Eiffel Tower",
+            "de": "the beautiful Bavarian Alps and historic castles",
+            "gr": "the ancient Acropolis and stunning islands",
+            "in": "the magnificent Taj Mahal and vibrant culture",
+            "id": "the tropical beaches of Bali and volcanic islands",
+            "it": "the historic Colosseum and winding canals of Venice",
+            "jp": "the beautiful Mount Fuji and cherry blossoms",
+            "mx": "ancient Mayan ruins and incredible cuisine",
+            "nz": "the breathtaking fjords and Maori heritage",
+            "za": "the iconic Table Mountain and diverse wildlife",
+            "kr": "dynamic Seoul and rich technological innovation",
+            "es": "beautiful Barcelona and sunny Mediterranean beaches",
+            "gb": "historic London and the iconic Big Ben",
+            "us": "the Grand Canyon and bustling New York City",
+            "tr": "the historic city of Istanbul and Cappadocia",
+            "ru": "the vast Siberian tundra and historic Red Square",
+            "th": "beautiful tropical beaches and stunning temples",
+            "ch": "the spectacular Swiss Alps and pristine lakes"
+        };
+
+        async function detectCountry() {
+            try {
+                const waitThreeSeconds = new Promise(resolve => setTimeout(resolve, 3000));
+                const fetchLocationData = fetch('https://get.geojs.io/v1/ip/geo.json').then(res => res.json());
+
+                const [_, data] = await Promise.all([waitThreeSeconds, fetchLocationData]);
+
+                const countryCode = data.country_code.toLowerCase();
+                const specificIndicator = countryIndicators[countryCode] || "its beautiful landscapes and unique cultural heritage";
+                
+                document.getElementById('trivia-text').innerHTML = `
+                    You are browsing the Internet from the country of
+                    <strong>${data.country}</strong>
+                    famous for ${specificIndicator}.
+                `;
+                
+                const flagElement = document.getElementById('flag');
+                flagElement.src = `https://flagcdn.com/w160/${countryCode}.png`;
+                
+                flagElement.onload = () => {
+                    flagElement.style.display = 'block';
+                    
+                    // Triggers the 3D flip animation
+                    document.getElementById('card-scene').classList.add('is-flipped');
+                };
+
+            } catch (error) {
+                document.getElementById('status-message').textContent = "Couldn't detect location.";
+                
+                const frontGlobe = document.querySelector('.card-front .globe');
+                if(frontGlobe) {
+                    frontGlobe.style.animation = 'none';
+                    frontGlobe.style.opacity = '0.2';
+                }
+                console.error("Error fetching location:", error);
+            }
+        }
+
+        detectCountry();
+    </script>
+
+</body>
+</html>
