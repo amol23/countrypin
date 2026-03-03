@@ -288,7 +288,7 @@
         async function fetchNews(countryCode) {
             const newsList = document.getElementById('news-list');
             try {
-                const url = `https://gnews.io/api/v4/top-headlines?category=general&country=${countryCode}&max=3&apikey=${GNEWS_API_KEY}`;
+                const url = `https://https://gnews.io/api/v4/top-headlines?category=general&apikey&apikey=${GNEWS_API_KEY}`;
                 const response = await fetch(url);
                 const data = await response.json();
 
