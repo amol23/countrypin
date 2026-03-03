@@ -29,8 +29,8 @@
         }
 
         .scene {
-            width: 380px; 
-            height: 520px; 
+            width: 400px; /* Widened slightly for news headlines */
+            height: 650px; /* Made taller to fit the news section */
             perspective: 1000px;
         }
 
@@ -46,7 +46,6 @@
             transform: rotateY(180deg);
         }
 
-        /* Hide the front face entirely after it flips to fix the transparent overlap bug */
         .scene.is-flipped .card-front {
             opacity: 0;
             transition: opacity 0.1s 0.3s; 
@@ -75,24 +74,29 @@
 
         .card-back {
             transform: rotateY(180deg);
-            padding: 20px 30px; 
+            padding: 30px; 
             justify-content: flex-start; 
-            padding-top: 40px;
+            overflow-y: auto; /* Adds a scrollbar if news titles are too long */
         }
 
+        /* Custom Scrollbar for the card back */
+        .card-back::-webkit-scrollbar { width: 6px; }
+        .card-back::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
+
         .globe {
-            width: 70px;
-            height: 70px;
+            width: 60px; /* Slightly smaller to save space */
+            height: 60px;
             position: relative;
             transform-style: preserve-3d;
             animation: spinGlobe 3s linear infinite;
             margin-bottom: 20px;
         }
         
-        /* New styling to perfectly space the globe when it's at the bottom */
         .card-back .globe {
-            margin-top: 35px;
+            margin-top: 25px;
             margin-bottom: 0;
+            width: 50px;
+            height: 50px;
         }
         
         .globe-ring {
@@ -123,32 +127,85 @@
             50% { opacity: 1; }
         }
 
+        #greeting-text {
+            font-size: 22px;
+            font-weight: bold;
+            color: #64b5f6;
+            margin-bottom: 5px;
+        }
+
         #trivia-text {
-            font-size: 16px;
-            line-height: 1.5;
+            font-size: 15px;
+            line-height: 1.4;
             color: #e0e0e0;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         #trivia-text strong {
             color: #fff;
-            font-size: 26px;
+            font-size: 22px;
             display: block;
-            margin: 10px 0;
+            margin: 5px 0;
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
         #flag {
-            max-width: 150px;
+            max-width: 120px;
             border-radius: 8px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.3);
             animation: float 4s ease-in-out infinite;
+            margin-bottom: 20px;
         }
 
         @keyframes float {
             0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
+            50% { transform: translateY(-8px); }
             100% { transform: translateY(0px); }
+        }
+
+        /* --- News Section Styling --- */
+        .news-container {
+            width: 100%;
+            text-align: left;
+            margin-top: 5px;
+        }
+
+        .news-header {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #aaa;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 5px;
+        }
+
+        .news-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            line-height: 1.4;
+            transition: background 0.2s;
+        }
+
+        .news-item:hover {
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .news-item a {
+            color: #fff;
+            text-decoration: none;
+            display: block;
+        }
+
+        .news-item a span {
+            color: #64b5f6;
+            font-size: 11px;
+            display: block;
+            margin-top: 4px;
+            text-transform: uppercase;
         }
     </style>
 </head>
@@ -168,9 +225,15 @@
             </div>
 
             <div class="card-face card-back">
-                
+                <div id="greeting-text"></div>
                 <div id="trivia-text"></div>
                 <img id="flag" src="" alt="Country Flag" style="display:none;">
+
+                <div class="news-container">
+                    <div class="news-header" id="news-header">Latest Local News</div>
+                    <div id="news-list">
+                        </div>
+                </div>
 
                 <div class="globe">
                     <div class="globe-ring"></div>
@@ -184,35 +247,63 @@
     </div>
 
     <script>
+        // === REPLACE THIS WITH YOUR GNEWS.IO API KEY ===
+        const GNEWS_API_KEY = 'YOUR_API_KEY_HERE'; 
+        // ===============================================
+
         const countryIndicators = {
-            "ar": "the passionate tango and stunning Patagonia",
-            "au": "the Great Barrier Reef and the rugged Outback",
-            "br": "the vast Amazon Rainforest and vibrant Carnival",
-            "ca": "the breathtaking Rocky Mountains and vast wilderness",
-            "cn": "the ancient Great Wall and rich traditions",
-            "eg": "the majestic Pyramids of Giza and the Nile River",
-            "fr": "the romantic city of Paris and the Eiffel Tower",
-            "de": "the beautiful Bavarian Alps and historic castles",
-            "gr": "the ancient Acropolis and stunning islands",
-            "in": "the magnificent Taj Mahal and vibrant culture",
-            "id": "the tropical beaches of Bali and volcanic islands",
-            "it": "the historic Colosseum and winding canals of Venice",
-            "jp": "the beautiful Mount Fuji and cherry blossoms",
-            "mx": "ancient Mayan ruins and incredible cuisine",
-            "nz": "the breathtaking fjords and Maori heritage",
-            "za": "the iconic Table Mountain and diverse wildlife",
-            "kr": "dynamic Seoul and rich technological innovation",
-            "es": "beautiful Barcelona and sunny Mediterranean beaches",
-            "gb": "historic London and the iconic Big Ben",
             "us": "the Grand Canyon and bustling New York City",
-            "tr": "the historic city of Istanbul and Cappadocia",
-            "ru": "the vast Siberian tundra and historic Red Square",
-            "th": "beautiful tropical beaches and stunning temples",
-            "ch": "the spectacular Swiss Alps and pristine lakes"
+            "ca": "the breathtaking Rocky Mountains and vast wilderness",
+            "mx": "ancient Mayan ruins and incredible cuisine",
+            "gb": "historic London and the iconic Big Ben",
+            "in": "the magnificent Taj Mahal and vibrant culture",
+            "au": "the Great Barrier Reef and the rugged Outback",
+            // (You can paste the full list of 50+ countries we made earlier right here!)
         };
+
+        // Determine Time of Day
+        function getGreeting() {
+            const hour = new Date().getHours();
+            if (hour >= 5 && hour < 12) return "Good Morning! 🌅";
+            if (hour >= 12 && hour < 17) return "Good Afternoon! ☀️";
+            if (hour >= 17 && hour < 22) return "Good Evening! 🌇";
+            return "Up late? 🌙";
+        }
+
+        async function fetchNews(countryCode) {
+            const newsList = document.getElementById('news-list');
+            try {
+                // Fetch top 3 general headlines for the detected country
+                const url = `https://gnews.io/api/v4/top-headlines?category=general&country=${countryCode}&max=3&apikey=${GNEWS_API_KEY}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.articles && data.articles.length > 0) {
+                    newsList.innerHTML = ''; // Clear loading text
+                    data.articles.forEach(article => {
+                        newsList.innerHTML += `
+                            <div class="news-item">
+                                <a href="${article.url}" target="_blank" rel="noopener noreferrer">
+                                    ${article.title}
+                                    <span>Read Source ↗</span>
+                                </a>
+                            </div>
+                        `;
+                    });
+                } else {
+                    newsList.innerHTML = '<div class="news-item">No recent news found for your region.</div>';
+                }
+            } catch (error) {
+                console.error("News fetch error:", error);
+                newsList.innerHTML = '<div class="news-item">Unable to load live news right now.</div>';
+            }
+        }
 
         async function detectCountry() {
             try {
+                // Display the dynamic greeting
+                document.getElementById('greeting-text').textContent = getGreeting();
+
                 const waitThreeSeconds = new Promise(resolve => setTimeout(resolve, 3000));
                 const fetchLocationData = fetch('https://get.geojs.io/v1/ip/geo.json').then(res => res.json());
 
@@ -222,30 +313,29 @@
                 const specificIndicator = countryIndicators[countryCode] || "its beautiful landscapes and unique cultural heritage";
                 
                 document.getElementById('trivia-text').innerHTML = `
-                    You are browsing the Internet from the country of
+                    Browsing from
                     <strong>${data.country}</strong>
                     famous for ${specificIndicator}.
                 `;
                 
+                // Start fetching the news in the background using the country code
+                fetchNews(countryCode);
+
                 const flagElement = document.getElementById('flag');
                 flagElement.src = `https://flagcdn.com/w160/${countryCode}.png`;
                 
                 flagElement.onload = () => {
                     flagElement.style.display = 'block';
-                    
-                    // Triggers the 3D flip animation
                     document.getElementById('card-scene').classList.add('is-flipped');
                 };
 
             } catch (error) {
                 document.getElementById('status-message').textContent = "Couldn't detect location.";
-                
                 const frontGlobe = document.querySelector('.card-front .globe');
                 if(frontGlobe) {
                     frontGlobe.style.animation = 'none';
                     frontGlobe.style.opacity = '0.2';
                 }
-                console.error("Error fetching location:", error);
             }
         }
 
