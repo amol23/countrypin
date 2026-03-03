@@ -85,7 +85,7 @@
             height: 60px;
             position: relative;
             transform-style: preserve-3d;
-            animation: spinGlobe 1s linear infinite;
+            animation: spinGlobe 3s linear infinite;
             margin-bottom: 20px;
             flex-shrink: 0;
         }
@@ -137,6 +137,7 @@
             line-height: 1.4;
             color: #e0e0e0;
             margin-bottom: 25px;
+            min-height: 80px; /* Keeps the card from jumping around if facts are different lengths */
         }
 
         #trivia-text strong {
@@ -162,13 +163,12 @@
             100% { transform: translateY(0px); }
         }
         
-        /* New Clock Styling */
         #clock-container {
             margin-top: 15px;
             font-size: 12px;
             color: #aaa;
             letter-spacing: 0.5px;
-            display: none; /* Hidden until loaded */
+            display: none; 
         }
         
         #local-time {
@@ -184,7 +184,6 @@
 
     <div class="scene" id="card-scene">
         <div class="card-inner">
-            
             <div class="card-face card-front">
                 <div class="globe">
                     <div class="globe-ring"></div>
@@ -212,101 +211,312 @@
                     <div class="globe-ring"></div>
                 </div>
             </div>
-
         </div>
     </div>
 
     <script>
+        // Dictionary with arrays of facts for randomization
         const countryIndicators = {
-            // North & Central America
-            "us": "the Grand Canyon and bustling New York City",
-            "ca": "the breathtaking Rocky Mountains and vast wilderness",
-            "mx": "ancient Mayan ruins and incredible cuisine",
-            "cu": "its vintage cars, vibrant music, and colorful Havana streets",
-            "pa": "the incredible Panama Canal and beautiful rainforests",
-            "cr": "its rich biodiversity, volcanoes, and pura vida lifestyle",
-            "jm": "reggae music, pristine beaches, and vibrant culture",
-            
-            // South America
-            "br": "the vast Amazon Rainforest and vibrant Carnival",
-            "ar": "the passionate tango and stunning Patagonia",
-            "co": "its rich coffee heritage and vibrant biodiversity",
-            "cl": "the arid Atacama Desert and stunning Andean peaks",
-            "pe": "the ancient Incan citadel of Machu Picchu and the Andes",
-            "ve": "the magnificent Angel Falls and Caribbean coastlines",
-            "ec": "the unique Galapagos Islands and equatorial landscapes",
-            "uy": "its beautiful Atlantic beaches and thriving art scene",
-            
-            // Europe
-            "fr": "the romantic city of Paris and the Eiffel Tower",
-            "gb": "historic London and the iconic Big Ben",
-            "de": "the beautiful Bavarian Alps and historic castles",
-            "it": "the historic Colosseum and winding canals of Venice",
-            "es": "beautiful Barcelona and sunny Mediterranean beaches",
-            "ru": "the vast Siberian tundra and historic Red Square",
-            "ch": "the spectacular Swiss Alps and pristine lakes",
-            "gr": "the ancient Acropolis and stunning islands",
-            "nl": "its beautiful tulips, windmills, and cycling culture",
-            "se": "its stunning archipelagos and innovative design",
-            "no": "its breathtaking fjords and the spectacular Northern Lights",
-            "pt": "its historic explorers, beautiful coastlines, and Fado music",
-            "pl": "its resilient history and hearty pierogi",
-            "ie": "its rolling green hills, rich folklore, and historic pubs",
-            "at": "its classical music heritage and the majestic Alps",
-            "be": "its world-class chocolate, waffles, and medieval towns",
-            "dk": "its happy lifestyle, historic castles, and beautiful coastlines",
-            "fi": "its thousands of lakes and spectacular saunas",
-            "cz": "the stunning architecture of Prague and rich history",
-            "hu": "the thermal baths of Budapest and grand architecture",
-            "ua": "its rich agricultural plains and deep cultural resilience",
-            "ro": "the legends of Transylvania and the beautiful Carpathian Mountains",
-            
-            // Asia
-            "cn": "the ancient Great Wall and rich traditions",
-            "in": "the magnificent Taj Mahal and vibrant culture",
-            "jp": "the beautiful Mount Fuji and cherry blossoms",
-            "kr": "dynamic Seoul and rich technological innovation",
-            "id": "the tropical beaches of Bali and volcanic islands",
-            "th": "beautiful tropical beaches and stunning temples",
-            "vn": "the stunning Ha Long Bay and delicious pho",
-            "ph": "its thousands of tropical islands and warm hospitality",
-            "my": "the iconic Petronas Towers and diverse culinary scene",
-            "pk": "the majestic peaks of the Karakoram and rich cultural heritage",
-            "bd": "the vast Sundarbans mangrove forest and vibrant textile industry",
-            "sg": "its stunning futuristic skyline and spotless streets",
-            "lk": "its ancient ruins, beautiful tea gardens, and rich wildlife",
-            "np": "the towering peak of Mount Everest and rich spiritual heritage",
-            "mm": "the ancient temples of Bagan and beautiful golden pagodas",
-            "kh": "the magnificent ancient temple complex of Angkor Wat",
-            
-            // Middle East
-            "tr": "the historic city of Istanbul and Cappadocia",
-            "ae": "the towering Burj Khalifa and luxurious futuristic cities",
-            "sa": "its vast deserts and the holy cities of Mecca and Medina",
-            "eg": "the majestic Pyramids of Giza and the Nile River",
-            "il": "its ancient historical sites and innovative tech scene",
-            "qa": "its ultra-modern architecture and stunning desert landscapes",
-            "kw": "its striking modern towers and rich maritime history",
-            "jo": "the ancient rock-cut architecture of Petra",
-            "lb": "its vibrant capital Beirut and the ancient cedar forests",
-            
-            // Africa
-            "za": "the iconic Table Mountain and diverse wildlife",
-            "ng": "its booming Nollywood film industry and dynamic culture",
-            "ke": "its spectacular savanna safaris and the Great Migration",
-            "ma": "the bustling souks of Marrakech and the vast Sahara",
-            "et": "its ancient rock-hewn churches and being the birthplace of coffee",
-            "tz": "the majestic Mount Kilimanjaro and the Serengeti plains",
-            "gh": "its welcoming culture, historic forts, and beautiful coastlines",
-            "ug": "its lush landscapes and rare mountain gorillas",
-            "dz": "the immense Sahara Desert and Mediterranean coastlines",
-            "sn": "its rich musical heritage and vibrant capital, Dakar",
-            
-            // Oceania
-            "au": "the Great Barrier Reef and the rugged Outback",
-            "nz": "the breathtaking fjords and Maori heritage",
-            "fj": "its soft coral reefs, clear lagoons, and welcoming culture",
-            "pg": "its immense cultural diversity and rugged rainforests"
+            // --- FULLY POPULATED TOP 25 COUNTRIES ---
+            "us": [
+                "landing the first humans on the moon in 1969",
+                "Hollywood's massive global entertainment influence",
+                "winning the most Olympic medals in history",
+                "the invention of the airplane by the Wright brothers",
+                "creating jazz, blues, and hip hop music",
+                "the drafting of the 1776 Declaration of Independence",
+                "pioneering the internet and personal computing",
+                "the Grand Canyon and diverse national parks",
+                "its major scientific contributions to space exploration",
+                "hosting the United Nations headquarters in New York"
+            ],
+            "gb": [
+                "the historical global impact of the British Empire",
+                "the scientific discoveries of Isaac Newton and Charles Darwin",
+                "the literary genius of William Shakespeare",
+                "originating the modern game of football (soccer)",
+                "the legendary music of The Beatles",
+                "writing the Magna Carta in 1215",
+                "hosting the prestigious Wimbledon tennis tournament",
+                "the Industrial Revolution that changed the modern world",
+                "its historic royal family and Buckingham Palace",
+                "the discovery of penicillin by Alexander Fleming"
+            ],
+            "in": [
+                "the magnificent Taj Mahal and rich architectural history",
+                "inventing the mathematical concept of zero",
+                "conducting the world's largest democratic elections",
+                "Bollywood, the world's most prolific film industry",
+                "being the historic birthplace of yoga and Ayurveda",
+                "the ancient and advanced Indus Valley Civilization",
+                "the successful Mangalyaan mission to Mars",
+                "having 22 officially recognized languages",
+                "winning multiple Cricket World Cups",
+                "its incredibly diverse and globally loved culinary traditions"
+            ],
+            "cn": [
+                "the ancient Great Wall and rich imperial history",
+                "inventing paper, printing, gunpowder, and the compass",
+                "hosting the spectacular 2008 Beijing Olympics",
+                "the famous Terracotta Army of Qin Shi Huang",
+                "being the world's most populous nation for decades",
+                "its rapid modern economic and technological boom",
+                "the ancient philosophy of Confucianism",
+                "building the massive Three Gorges Dam",
+                "its successful Chang'e lunar exploration missions",
+                "the giant panda, a global symbol of wildlife conservation"
+            ],
+            "jp": [
+                "the beautiful Mount Fuji and cherry blossoms",
+                "pioneering high-speed rail with the Shinkansen (bullet train)",
+                "the global cultural impact of anime and manga",
+                "its rich history of samurai and martial arts",
+                "hosting the historic 1964 and 2020 Tokyo Olympics",
+                "world-leading innovations in robotics and electronics",
+                "the ancient indigenous religion of Shinto",
+                "its globally revered cuisine, especially sushi",
+                "the deep cultural traditions of tea ceremonies and origami",
+                "having one of the highest life expectancies in the world"
+            ],
+            "fr": [
+                "the romantic city of Paris and the Eiffel Tower",
+                "the transformative French Revolution of 1789",
+                "winning multiple FIFA World Cups",
+                "the groundbreaking science of Marie Curie and Louis Pasteur",
+                "its world-renowned wine, cheese, and culinary arts",
+                "the artistic legacy of the Impressionist movement",
+                "hosting the famous Tour de France cycling race",
+                "the historic Palace of Versailles",
+                "its major contributions to cinema and the Cannes Film Festival",
+                "pioneering aviation with the Montgolfier brothers' balloon"
+            ],
+            "de": [
+                "the fall of the Berlin Wall in 1989",
+                "the scientific genius of Albert Einstein and Max Planck",
+                "winning four FIFA World Cup titles",
+                "the invention of the printing press by Johannes Gutenberg",
+                "its classical music legends like Beethoven and Bach",
+                "the globally famous Oktoberfest in Munich",
+                "its world-leading automotive engineering (BMW, Mercedes, Porsche)",
+                "the historic castles of Bavaria",
+                "pioneering the modern automobile by Karl Benz",
+                "its deep philosophical history from Kant to Nietzsche"
+            ],
+            "it": [
+                "the historic Colosseum and the Roman Empire",
+                "being the birthplace of the Renaissance",
+                "the artistic mastery of Leonardo da Vinci and Michelangelo",
+                "inventing pizza in the city of Naples",
+                "the scientific discoveries of Galileo Galilei",
+                "winning four FIFA World Cup championships",
+                "its luxury fashion houses in Milan",
+                "the winding canals and gondolas of Venice",
+                "its world-famous cinematic history and directors",
+                "the leaning tower of Pisa"
+            ],
+            "es": [
+                "beautiful Barcelona and the architecture of Antoni Gaudí",
+                "its historic global exploration during the Age of Discovery",
+                "the passionate art of Flamenco music and dance",
+                "winning the 2010 FIFA World Cup",
+                "the literary masterpiece Don Quixote by Cervantes",
+                "its artistic legends Pablo Picasso and Salvador Dalí",
+                "the world-famous running of the bulls in Pamplona",
+                "its popular culinary traditions like tapas and paella",
+                "dominating global tennis with Rafael Nadal",
+                "the historic Alhambra palace in Granada"
+            ],
+            "br": [
+                "the vast Amazon Rainforest and river basin",
+                "winning a record five FIFA World Cups",
+                "the vibrant and world-famous Carnival in Rio",
+                "the iconic Christ the Redeemer statue",
+                "the musical creations of Bossa Nova and Samba",
+                "its legendary football icons like Pelé and Ronaldo",
+                "being the world's largest producer of coffee",
+                "its diverse and massive Atlantic coastline",
+                "the incredible biodiversity of the Pantanal",
+                "hosting the 2016 Summer Olympics in Rio de Janeiro"
+            ],
+            "ar": [
+                "the passionate creation of the Tango dance",
+                "winning three FIFA World Cups, led by Maradona and Messi",
+                "the stunning glaciers and peaks of Patagonia",
+                "being the birthplace of Che Guevara",
+                "its world-renowned beef and asado BBQ culture",
+                "the historic Casa Rosada in Buenos Aires",
+                "the breathtaking Iguazu Falls",
+                "its rich literary history led by Jorge Luis Borges",
+                "having the highest peak in the Americas, Aconcagua",
+                "the discovery of massive dinosaur fossils like Argentinosaurus"
+            ],
+            "ca": [
+                "the breathtaking Rocky Mountains and vast wilderness",
+                "inventing the sport of basketball (by James Naismith)",
+                "its global dominance in ice hockey",
+                "the discovery of insulin by Banting and Best",
+                "its bilingual English and French cultural heritage",
+                "the massive and beautiful Niagara Falls",
+                "producing globally famous musicians and actors",
+                "its iconic maple syrup production",
+                "having the longest coastline of any country in the world",
+                "hosting the Winter Olympics in Calgary and Vancouver"
+            ],
+            "mx": [
+                "the ancient Mayan ruins of Chichen Itza",
+                "the rich history of the Aztec Empire",
+                "its globally beloved cuisine, recognized by UNESCO",
+                "the vibrant cultural celebration of Dia de los Muertos",
+                "its legendary painters Frida Kahlo and Diego Rivera",
+                "the invention of color television by Guillermo González Camarena",
+                "hosting two historic FIFA World Cups",
+                "its traditional Mariachi music",
+                "the massive megalopolis of Mexico City",
+                "its beautiful and popular coastal resorts"
+            ],
+            "au": [
+                "the incredible biodiversity of the Great Barrier Reef",
+                "the stunning architecture of the Sydney Opera House",
+                "its unique wildlife like kangaroos and koalas",
+                "the rich and ancient culture of the Aboriginal peoples",
+                "dominating global cricket and rugby",
+                "the invention of the cochlear implant and Wi-Fi tech",
+                "the rugged and expansive Outback",
+                "hosting the highly successful 2000 Sydney Olympics",
+                "producing massive Hollywood stars and filmmakers",
+                "its vibrant surfing culture and beautiful beaches"
+            ],
+            "za": [
+                "the iconic Table Mountain overlooking Cape Town",
+                "the historic anti-apartheid leadership of Nelson Mandela",
+                "winning multiple Rugby World Cups",
+                "performing the world's first successful human heart transplant",
+                "its incredibly diverse wildlife and safari parks",
+                "hosting the vibrant 2010 FIFA World Cup",
+                "its complex history and 11 official languages",
+                "the discovery of some of the oldest human ancestor fossils",
+                "its massive diamond and gold mining history",
+                "producing globally recognized comedians and musicians"
+            ],
+            "kr": [
+                "the massive global phenomenon of K-pop and BTS",
+                "world-leading technology companies like Samsung and LG",
+                "its rich history of ancient dynasties and palaces",
+                "dominating global esports and competitive gaming",
+                "the global success of Korean cinema and dramas",
+                "hosting the 1988 Summer and 2018 Winter Olympics",
+                "its delicious and spicy culinary export, Kimchi",
+                "inventing the Hangul alphabet in the 15th century",
+                "its rapid 'Miracle on the Han River' economic rise",
+                "dominating the sport of short-track speed skating"
+            ],
+            "ru": [
+                "the vast Siberian tundra and being the world's largest country",
+                "launching Yuri Gagarin, the first human in space",
+                "the historic 1917 Bolshevik Revolution",
+                "its legendary literary giants like Tolstoy and Dostoevsky",
+                "the iconic architecture of the Kremlin and Red Square",
+                "creating the world-famous ballet companies like the Bolshoi",
+                "hosting the 2018 FIFA World Cup",
+                "its dominance in chess and figure skating",
+                "the invention of the periodic table by Dmitri Mendeleev",
+                "its complex Cold War history and space race achievements"
+            ],
+            "eg": [
+                "the majestic Pyramids of Giza and the Sphinx",
+                "the lifeline of the ancient and modern Nile River",
+                "the historic discovery of King Tutankhamun's tomb",
+                "its dominance in the sport of squash",
+                "the crucial global trade route of the Suez Canal",
+                "its rich cinematic history as the 'Hollywood of the Middle East'",
+                "the ancient invention of papyrus paper and hieroglyphs",
+                "the historic city of Alexandria and its ancient library",
+                "winning the most Africa Cup of Nations football titles",
+                "its vibrant modern capital city of Cairo"
+            ],
+            "ng": [
+                "Nollywood, one of the world's largest film industries",
+                "its massive global influence in Afrobeats music",
+                "being the most populous country in Africa",
+                "its rich cultural diversity with over 250 ethnic groups",
+                "the historic success of the Super Eagles football team",
+                "producing Nobel Laureate author Wole Soyinka",
+                "its massive economic reliance on oil exports",
+                "the vibrant and bustling tech hub of Lagos",
+                "its rich history of ancient kingdoms and bronze art",
+                "producing world-champion UFC fighters"
+            ],
+            "nz": [
+                "the breathtaking landscapes featured in Lord of the Rings",
+                "the rich indigenous Maori culture and the Haka",
+                "its legendary All Blacks rugby team",
+                "being the first country to grant women the right to vote in 1893",
+                "the scientific achievements of physicist Ernest Rutherford",
+                "its extreme sports culture, inventing commercial bungee jumping",
+                "its unique, flightless national bird, the Kiwi",
+                "successful and progressive handling of modern governance",
+                "its world-renowned Sauvignon Blanc wines",
+                "the stunning fjords of Milford Sound"
+            ],
+
+            // --- STANDARD ARRAYS FOR THE REST ---
+            // You can easily add 9 more facts to any of these!
+            "cu": ["its vintage cars, vibrant music, and colorful Havana streets"],
+            "pa": ["the incredible Panama Canal and beautiful rainforests"],
+            "cr": ["its rich biodiversity, volcanoes, and pura vida lifestyle"],
+            "jm": ["reggae music, pristine beaches, and vibrant culture"],
+            "co": ["its rich coffee heritage and vibrant biodiversity"],
+            "cl": ["the arid Atacama Desert and stunning Andean peaks"],
+            "pe": ["the ancient Incan citadel of Machu Picchu and the Andes"],
+            "ve": ["the magnificent Angel Falls and Caribbean coastlines"],
+            "ec": ["the unique Galapagos Islands and equatorial landscapes"],
+            "uy": ["its beautiful Atlantic beaches and thriving art scene"],
+            "ch": ["the spectacular Swiss Alps and pristine lakes"],
+            "gr": ["the ancient Acropolis and stunning islands"],
+            "nl": ["its beautiful tulips, windmills, and cycling culture"],
+            "se": ["its stunning archipelagos and innovative design"],
+            "no": ["its breathtaking fjords and the spectacular Northern Lights"],
+            "pt": ["its historic explorers, beautiful coastlines, and Fado music"],
+            "pl": ["its resilient history and hearty pierogi"],
+            "ie": ["its rolling green hills, rich folklore, and historic pubs"],
+            "at": ["its classical music heritage and the majestic Alps"],
+            "be": ["its world-class chocolate, waffles, and medieval towns"],
+            "dk": ["its happy lifestyle, historic castles, and beautiful coastlines"],
+            "fi": ["its thousands of lakes and spectacular saunas"],
+            "cz": ["the stunning architecture of Prague and rich history"],
+            "hu": ["the thermal baths of Budapest and grand architecture"],
+            "ua": ["its rich agricultural plains and deep cultural resilience"],
+            "ro": ["the legends of Transylvania and the beautiful Carpathian Mountains"],
+            "id": ["the tropical beaches of Bali and volcanic islands"],
+            "th": ["beautiful tropical beaches and stunning temples"],
+            "vn": ["the stunning Ha Long Bay and delicious pho"],
+            "ph": ["its thousands of tropical islands and warm hospitality"],
+            "my": ["the iconic Petronas Towers and diverse culinary scene"],
+            "pk": ["the majestic peaks of the Karakoram and rich cultural heritage"],
+            "bd": ["the vast Sundarbans mangrove forest and vibrant textile industry"],
+            "sg": ["its stunning futuristic skyline and spotless streets"],
+            "lk": ["its ancient ruins, beautiful tea gardens, and rich wildlife"],
+            "np": ["the towering peak of Mount Everest and rich spiritual heritage"],
+            "mm": ["the ancient temples of Bagan and beautiful golden pagodas"],
+            "kh": ["the magnificent ancient temple complex of Angkor Wat"],
+            "tr": ["the historic city of Istanbul and Cappadocia"],
+            "ae": ["the towering Burj Khalifa and luxurious futuristic cities"],
+            "sa": ["its vast deserts and the holy cities of Mecca and Medina"],
+            "il": ["its ancient historical sites and innovative tech scene"],
+            "qa": ["its ultra-modern architecture and stunning desert landscapes"],
+            "kw": ["its striking modern towers and rich maritime history"],
+            "jo": ["the ancient rock-cut architecture of Petra"],
+            "lb": ["its vibrant capital Beirut and the ancient cedar forests"],
+            "ke": ["its spectacular savanna safaris and the Great Migration"],
+            "ma": ["the bustling souks of Marrakech and the vast Sahara"],
+            "et": ["its ancient rock-hewn churches and being the birthplace of coffee"],
+            "tz": ["the majestic Mount Kilimanjaro and the Serengeti plains"],
+            "gh": ["its welcoming culture, historic forts, and beautiful coastlines"],
+            "ug": ["its lush landscapes and rare mountain gorillas"],
+            "dz": ["the immense Sahara Desert and Mediterranean coastlines"],
+            "sn": ["its rich musical heritage and vibrant capital, Dakar"],
+            "fj": ["its soft coral reefs, clear lagoons, and welcoming culture"],
+            "pg": ["its immense cultural diversity and rugged rainforests"]
         };
 
         function getGreeting() {
@@ -317,18 +527,14 @@
             return "Up late? 🌙";
         }
 
-        // Live Clock Function
         function startClock(timezoneString) {
             const timeElement = document.getElementById('local-time');
             const tzElement = document.getElementById('timezone-info');
             
-            // Set the timezone info text once
             tzElement.textContent = timezoneString;
 
-            // Update the clock every second
             setInterval(() => {
                 const now = new Date();
-                // We use toLocaleTimeString with the specific timezone returned by the API
                 const timeString = now.toLocaleTimeString('en-US', {
                     timeZone: timezoneString,
                     hour: '2-digit',
@@ -350,12 +556,18 @@
                 const [_, data] = await Promise.all([waitThreeSeconds, fetchLocationData]);
 
                 const countryCode = data.country_code.toLowerCase();
-                const specificIndicator = countryIndicators[countryCode] || "its beautiful landscapes and unique cultural heritage";
+                
+                // --- NEW RANDOMIZER LOGIC ---
+                // Grabs the array of facts for the country, or uses the default array
+                const factsArray = countryIndicators[countryCode] || ["its beautiful landscapes and unique cultural heritage"];
+                
+                // Picks a random fact from the chosen array
+                const randomFact = factsArray[Math.floor(Math.random() * factsArray.length)];
                 
                 document.getElementById('trivia-text').innerHTML = `
                     Browsing from
                     <strong>${data.country}</strong>
-                    famous for ${specificIndicator}.
+                    famous for ${randomFact}.
                 `;
                 
                 const flagElement = document.getElementById('flag');
@@ -364,7 +576,6 @@
                 flagElement.onload = () => {
                     flagElement.style.display = 'block';
                     
-                    // Show and start the clock right as the card flips
                     document.getElementById('clock-container').style.display = 'block';
                     startClock(data.timezone);
                     
