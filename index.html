@@ -30,9 +30,9 @@
 
         .scene {
             width: 360px; 
-            height: 520px; 
-            max-height: 90vh; /* Prevents card from ever being taller than the screen */
-            max-width: 95vw; /* Prevents card from touching edges on mobile */
+            height: 460px; 
+            max-height: 90vh; 
+            max-width: 95vw; 
             perspective: 1000px;
         }
 
@@ -67,37 +67,34 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             display: flex;
             flex-direction: column;
-            justify-content: flex-start; /* Aligns items to top */
+            justify-content: center; 
             align-items: center;
             text-align: center;
-            padding: 25px; /* Reduced padding to save space */
+            padding: 30px; 
             box-sizing: border-box;
-            overflow: hidden; /* Prevents card from expanding */
-        }
-
-        .card-front {
-            justify-content: center; /* Keeps the loading globe perfectly centered */
         }
 
         .card-back {
             transform: rotateY(180deg);
+            justify-content: flex-start;
+            padding-top: 35px;
         }
 
         .globe {
-            width: 50px; /* Scaled down slightly */
-            height: 50px;
+            width: 60px; 
+            height: 60px;
             position: relative;
             transform-style: preserve-3d;
             animation: spinGlobe 3s linear infinite;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             flex-shrink: 0;
         }
         
         .card-back .globe {
-            margin-top: 10px;
+            margin-top: 20px;
             margin-bottom: 0;
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
         }
         
         .globe-ring {
@@ -129,99 +126,40 @@
         }
 
         #greeting-text {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: bold;
             color: #64b5f6;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
         }
 
         #trivia-text {
-            font-size: 14px;
-            line-height: 1.3;
+            font-size: 15px;
+            line-height: 1.4;
             color: #e0e0e0;
-            margin-bottom: 15px;
+            margin-bottom: 25px;
         }
 
         #trivia-text strong {
             color: #fff;
-            font-size: 20px;
+            font-size: 24px;
             display: block;
-            margin: 4px 0;
+            margin: 6px 0;
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
         #flag {
-            max-width: 90px; /* Scaled down for better fit */
+            max-width: 120px; 
             border-radius: 6px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             animation: float 4s ease-in-out infinite;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             flex-shrink: 0;
         }
 
         @keyframes float {
             0% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
+            50% { transform: translateY(-8px); }
             100% { transform: translateY(0px); }
-        }
-
-        /* --- News Section Styling --- */
-        .news-container {
-            width: 100%;
-            text-align: left;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden; /* Keeps container bounds strict */
-        }
-
-        .news-header {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #aaa;
-            margin-bottom: 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            padding-bottom: 5px;
-            flex-shrink: 0;
-        }
-
-        /* Makes only the news items scrollable! */
-        #news-list {
-            overflow-y: auto;
-            flex-grow: 1;
-            padding-right: 5px;
-        }
-
-        /* Custom Scrollbar for the news list */
-        #news-list::-webkit-scrollbar { width: 4px; }
-        #news-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
-
-        .news-item {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 8px 10px;
-            border-radius: 6px;
-            margin-bottom: 6px;
-            font-size: 12px;
-            line-height: 1.3;
-            transition: background 0.2s;
-        }
-
-        .news-item:hover {
-            background: rgba(0, 0, 0, 0.4);
-        }
-
-        .news-item a {
-            color: #fff;
-            text-decoration: none;
-            display: block;
-        }
-
-        .news-item a span {
-            color: #64b5f6;
-            font-size: 10px;
-            display: block;
-            margin-top: 3px;
-            text-transform: uppercase;
         }
     </style>
 </head>
@@ -245,12 +183,6 @@
                 <div id="trivia-text"></div>
                 <img id="flag" src="" alt="Country Flag" style="display:none;">
 
-                <div class="news-container">
-                    <div class="news-header" id="news-header">Latest Local News</div>
-                    <div id="news-list">
-                        </div>
-                </div>
-
                 <div class="globe">
                     <div class="globe-ring"></div>
                     <div class="globe-ring"></div>
@@ -263,18 +195,96 @@
     </div>
 
     <script>
-        // === REPLACE THIS WITH YOUR GNEWS.IO API KEY ===
-        const GNEWS_API_KEY = '1c05f04df42e527f4442a80974b659e0'; 
-        // ===============================================
-
         const countryIndicators = {
+            // North & Central America
             "us": "the Grand Canyon and bustling New York City",
             "ca": "the breathtaking Rocky Mountains and vast wilderness",
             "mx": "ancient Mayan ruins and incredible cuisine",
+            "cu": "its vintage cars, vibrant music, and colorful Havana streets",
+            "pa": "the incredible Panama Canal and beautiful rainforests",
+            "cr": "its rich biodiversity, volcanoes, and pura vida lifestyle",
+            "jm": "reggae music, pristine beaches, and vibrant culture",
+            
+            // South America
+            "br": "the vast Amazon Rainforest and vibrant Carnival",
+            "ar": "the passionate tango and stunning Patagonia",
+            "co": "its rich coffee heritage and vibrant biodiversity",
+            "cl": "the arid Atacama Desert and stunning Andean peaks",
+            "pe": "the ancient Incan citadel of Machu Picchu and the Andes",
+            "ve": "the magnificent Angel Falls and Caribbean coastlines",
+            "ec": "the unique Galapagos Islands and equatorial landscapes",
+            "uy": "its beautiful Atlantic beaches and thriving art scene",
+            
+            // Europe
+            "fr": "the romantic city of Paris and the Eiffel Tower",
             "gb": "historic London and the iconic Big Ben",
+            "de": "the beautiful Bavarian Alps and historic castles",
+            "it": "the historic Colosseum and winding canals of Venice",
+            "es": "beautiful Barcelona and sunny Mediterranean beaches",
+            "ru": "the vast Siberian tundra and historic Red Square",
+            "ch": "the spectacular Swiss Alps and pristine lakes",
+            "gr": "the ancient Acropolis and stunning islands",
+            "nl": "its beautiful tulips, windmills, and cycling culture",
+            "se": "its stunning archipelagos and innovative design",
+            "no": "its breathtaking fjords and the spectacular Northern Lights",
+            "pt": "its historic explorers, beautiful coastlines, and Fado music",
+            "pl": "its resilient history and hearty pierogi",
+            "ie": "its rolling green hills, rich folklore, and historic pubs",
+            "at": "its classical music heritage and the majestic Alps",
+            "be": "its world-class chocolate, waffles, and medieval towns",
+            "dk": "its happy lifestyle, historic castles, and beautiful coastlines",
+            "fi": "its thousands of lakes and spectacular saunas",
+            "cz": "the stunning architecture of Prague and rich history",
+            "hu": "the thermal baths of Budapest and grand architecture",
+            "ua": "its rich agricultural plains and deep cultural resilience",
+            "ro": "the legends of Transylvania and the beautiful Carpathian Mountains",
+            
+            // Asia
+            "cn": "the ancient Great Wall and rich traditions",
             "in": "the magnificent Taj Mahal and vibrant culture",
+            "jp": "the beautiful Mount Fuji and cherry blossoms",
+            "kr": "dynamic Seoul and rich technological innovation",
+            "id": "the tropical beaches of Bali and volcanic islands",
+            "th": "beautiful tropical beaches and stunning temples",
+            "vn": "the stunning Ha Long Bay and delicious pho",
+            "ph": "its thousands of tropical islands and warm hospitality",
+            "my": "the iconic Petronas Towers and diverse culinary scene",
+            "pk": "the majestic peaks of the Karakoram and rich cultural heritage",
+            "bd": "the vast Sundarbans mangrove forest and vibrant textile industry",
+            "sg": "its stunning futuristic skyline and spotless streets",
+            "lk": "its ancient ruins, beautiful tea gardens, and rich wildlife",
+            "np": "the towering peak of Mount Everest and rich spiritual heritage",
+            "mm": "the ancient temples of Bagan and beautiful golden pagodas",
+            "kh": "the magnificent ancient temple complex of Angkor Wat",
+            
+            // Middle East
+            "tr": "the historic city of Istanbul and Cappadocia",
+            "ae": "the towering Burj Khalifa and luxurious futuristic cities",
+            "sa": "its vast deserts and the holy cities of Mecca and Medina",
+            "eg": "the majestic Pyramids of Giza and the Nile River",
+            "il": "its ancient historical sites and innovative tech scene",
+            "qa": "its ultra-modern architecture and stunning desert landscapes",
+            "kw": "its striking modern towers and rich maritime history",
+            "jo": "the ancient rock-cut architecture of Petra",
+            "lb": "its vibrant capital Beirut and the ancient cedar forests",
+            
+            // Africa
+            "za": "the iconic Table Mountain and diverse wildlife",
+            "ng": "its booming Nollywood film industry and dynamic culture",
+            "ke": "its spectacular savanna safaris and the Great Migration",
+            "ma": "the bustling souks of Marrakech and the vast Sahara",
+            "et": "its ancient rock-hewn churches and being the birthplace of coffee",
+            "tz": "the majestic Mount Kilimanjaro and the Serengeti plains",
+            "gh": "its welcoming culture, historic forts, and beautiful coastlines",
+            "ug": "its lush landscapes and rare mountain gorillas",
+            "dz": "the immense Sahara Desert and Mediterranean coastlines",
+            "sn": "its rich musical heritage and vibrant capital, Dakar",
+            
+            // Oceania
             "au": "the Great Barrier Reef and the rugged Outback",
-            // You can paste the rest of your country list here!
+            "nz": "the breathtaking fjords and Maori heritage",
+            "fj": "its soft coral reefs, clear lagoons, and welcoming culture",
+            "pg": "its immense cultural diversity and rugged rainforests"
         };
 
         function getGreeting() {
@@ -283,34 +293,6 @@
             if (hour >= 12 && hour < 17) return "Good Afternoon! ☀️";
             if (hour >= 17 && hour < 22) return "Good Evening! 🌇";
             return "Up late? 🌙";
-        }
-
-        async function fetchNews(countryCode) {
-            const newsList = document.getElementById('news-list');
-            try {
-                const url = `https://gnews.io/api/v4/top-headlines?category=general&apikey&apikey=${GNEWS_API_KEY}`;
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (data.articles && data.articles.length > 0) {
-                    newsList.innerHTML = ''; 
-                    data.articles.forEach(article => {
-                        newsList.innerHTML += `
-                            <div class="news-item">
-                                <a href="${article.url}" target="_blank" rel="noopener noreferrer">
-                                    ${article.title}
-                                    <span>Read Source ↗</span>
-                                </a>
-                            </div>
-                        `;
-                    });
-                } else {
-                    newsList.innerHTML = '<div class="news-item">No recent news found for your region.</div>';
-                }
-            } catch (error) {
-                console.error("News fetch error:", error);
-                newsList.innerHTML = '<div class="news-item">Unable to load live news right now.</div>';
-            }
         }
 
         async function detectCountry() {
@@ -331,8 +313,6 @@
                     famous for ${specificIndicator}.
                 `;
                 
-                fetchNews(countryCode);
-
                 const flagElement = document.getElementById('flag');
                 flagElement.src = `https://flagcdn.com/w160/${countryCode}.png`;
                 
